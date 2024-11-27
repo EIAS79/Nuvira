@@ -1,0 +1,1 @@
+{"root":["../../lib/parser.ts","../../lib/sqon.ts","../../lib/extends/convertor.ts","../../lib/extends/parserecords.ts","../../lib/extends/parsevalidation.ts","../../lib/extends/schema.ts","../../lib/extends/validator.ts","../../lib/types/general.ts","../../lib/types/records.ts","../../lib/types/validator.ts"],"version":"5.7.2"}

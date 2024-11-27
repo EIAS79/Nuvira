@@ -1,0 +1,75 @@
+{
+  "name": "sqon-parser",
+  "version": "1.0.0",
+  "description": "Structured Queue Object Notation. New Database format (Readable & Supports Binary, Date & Bigint), (Inbuilt Schema & constraints).",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js"
+    }
+  },
+  "author": "zenith-79",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rimraf ./dist",
+    "build:esm": "tsc --build tsconfig.esm.json --force",
+    "build:cjs": "tsc --build tsconfig.cjs.json --force",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "watch": "tsc -w",
+    "start": "node ./dist/cjs/index.js",
+    "dev": "ts-node ./lib/index.ts",
+    "publish:prep": "npm run build",
+    "publish": "npm run publish:prep && npm publish"
+  },
+  "files": [
+    "lib",
+    "dist",
+    "example",
+    "changelog.md"
+  ],
+  "keywords": [
+    "sqon",
+    "structured queue object notation",
+    "custom database",
+    "custom format database",
+    "parser",
+    "sqon-parser",
+    "sqon parser",
+    "JSON",
+    "SQL",
+    "database",
+    "SQON",
+    "data conversion",
+    "format conversion",
+    "json to sqon",
+    "sqon to json",
+    "sql to sqon",
+    "sqon to sql",
+    "yaml to sqon",
+    "sqon to yaml",
+    "csv to sqon",
+    "sqon to csv",
+    "xml to sqon",
+    "sqon to xml",
+    "data transformation",
+    "data serialization",
+    "cross-format conversion",
+    "data interchange",
+    "relational database",
+    "non-relational database",
+    "NoSQL",
+    "SQL to NoSQL",
+    "NoSQL to SQL",
+    "relational data model",
+    "non-relational data model",
+    "fast",
+    "reliable"
+  ],
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

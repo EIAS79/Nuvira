@@ -1,0 +1,87 @@
+*STRICT=FALSE
+
+@schema
+!# The schema defines the types and structures for each field in the data.
+!# When STRICT=FALSE, fields can have more flexible types (e.g., RandomValue can be one of multiple types).
+name -> String   
+!# The "name" field is expected to be a string.
+
+age -> Number    
+!# The "age" field must be a number.
+
+nullValue -> Null  
+!# "nullValue" explicitly accepts `null` as a valid value.
+
+booleanValue -> Boolean  
+!# "booleanValue" accepts only `true` or `false`.
+
+DateValue -> Date  
+!# "DateValue" should be in a valid Date format (e.g., ISO 8601).
+
+undefinedValue -> undefined  
+!# "undefinedValue" accepts the `undefined` type explicitly.
+
+RandomValue -> Any  
+!# "RandomValue" accepts any type, providing maximum flexibility.
+
+BinaryValue -> Binary  
+!# "BinaryValue" is for storing raw binary data, often used for file data or encrypted information.
+
+RandomValue -> String | Number | Boolean | Date | undefined | Any | Binary | Null  
+!# "RandomValue" can accept any of these types, offering high flexibility in the schema.
+
+StringArrayValue -> StringArray  
+!# "StringArrayValue" is an array where each element must be a string.
+
+NumberArrayValue -> NumberArray  
+!# "NumberArrayValue" is an array where each element must be a number.
+
+ObjectArrayValue -> ObjectArray  
+!# "ObjectArrayValue" is an array that can contain objects. Each object inside the array can have its own schema, i.e., a unique structure defined for it.
+!# This means that within "ObjectArrayValue", you can specify complex data structures, including nested fields, and validate the individual properties of objects within the array.
+
+ObjectValue -> Object {  
+  !# "ObjectValue" is an object with its own set of fields inside. The fields inside the object can have their own specific data types, validations, and defaults.
+  !# Here, we define that the "ObjectValue" consists of one field, "name", which is of type String.
+  name -> String  
+  !# The "name" field inside the object is a required string, meaning each object inside the "ObjectArrayValue" array must have a "name" field.
+} 
+
+@end
+
+@validations
+!# Validation rules are specified for each field in the schema to ensure data integrity and quality.
+
+name -> required=true, minLength=3, isUnique=true  
+!# The "name" field is required, must be at least 3 characters long, and must be unique.
+
+age -> required=true, max=70, min=8, isPositive=true  
+!# The "age" field must be between 8 and 70, must be positive, and is required.
+
+NumberArrayValue -> maxLength=4, minLength=1, isUnique=true, max=100, min=5, isPositive=true  
+!# The "NumberArrayValue" must have between 1 and 4 elements, each between 5 and 100, positive, and unique.
+
+StringArrayValue -> maxLength=4, minLength=1, isUnique=true  
+!# "StringArrayValue" must have between 1 and 4 unique string elements.
+
+ObjectValue -> maxLength=4  
+!# "ObjectValue" is an object with a maximum of 4 fields.
+
+ObjectValue.name -> required=true, default="Anas"  
+!# The "name" inside "ObjectValue" is required and defaults to "Anas" if not provided.
+
+@end
+
+@records
+#0 -> name("Anas"); age(25); nullValue(NULL); booleanValue(TRUE); DateValue(1993-05-20T00:00:00Z); undefinedValue();
+ BinaryValue(<Buffer 21 231 21 13 56>); RandomValue(21); StringArrayValue[ _0("String 1"); _1("String 2"); _2("String 3"); ];
+ NumberArrayValue[ 
+  _0(1); _1(21); _2(32);
+  ];
+  ObjectArrayValue[ 
+    _0{ name("Joe"); };
+    _1{ name("Elias"); };
+  ];
+  ObjectValue{ name("Ali"); };
+#1 -> name("Anas"); age(25); nullValue(NULL); booleanValue(TRUE); DateValue(1993-05-20T00:00:00Z); undefinedValue(); BinaryValue(<Buffer 21 231 21 13 56>); RandomValue(21); StringArrayValue[ _0("String 1"); _1("String 2"); _2("String 3"); ]; NumberArrayValue[ _0(1); _1(21); _2(32); ]; ObjectArrayValue[ _0{ name("Joe"); }; _1{ name("Elias"); }; ]; ObjectValue{ name("Ali"); };
+@end
