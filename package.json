@@ -1,10 +1,10 @@
 {
   "name": "sqon-parser",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Structured Queue Object Notation. New Database format (Readable & Supports Binary, Date & Bigint), (Inbuilt Schema & constraints).",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "main": "./dist/cjs/sqon.js",
+  "module": "./dist/esm/sqon.js",
+  "types": "./dist/esm/sqon.d.ts",
   "exports": {
     ".": {
       "require": "./dist/cjs/index.js",
@@ -19,10 +19,17 @@
     "build:cjs": "tsc --build tsconfig.cjs.json --force",
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "watch": "tsc -w",
-    "start": "node ./dist/cjs/index.js",
-    "dev": "ts-node ./lib/index.ts",
+    "start": "node ./dist/cjs/sqon.js",
+    "dev": "ts-node ./lib/sqon.ts",
     "publish:prep": "npm run build",
     "publish": "npm run publish:prep && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EIAS79/SQON.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EIAS79/SQON/issues"
   },
   "files": [
     "lib",
@@ -71,5 +78,8 @@
   "devDependencies": {
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "kleur": "^4.1.5"
   }
 }
