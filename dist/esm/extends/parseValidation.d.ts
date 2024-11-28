@@ -28,7 +28,7 @@ export declare class SQONValidation {
     addValidation(key: string, rules: Record<string, any>): void;
     parseRules(rulesStr: string): Record<string, any>;
     parseArray(content: string): string[];
-    private parseObject;
+    parseObject(content: string): Record<string, any>;
     validateRulesAgainstSchema(key: string, rules: Record<string, any>): void;
     validateObjectArrayItems(key: string, rules: Record<string, any>): void;
     validateObjectProperties(key: string, rules: Record<string, any>): void;

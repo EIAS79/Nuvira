@@ -10,6 +10,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.0.4] - 2024-11-28
+
+### Fixed
+
+- Fixed the Validator class and added all the the rules validation is now working.
+
+---
+
+## [1.0.4] - 2024-11-28
+
+### Removed
+
+- Removed Validations rules (default, isEqualTo, MatchFields, custom) currently. They will be back soon.
+
+### Changed
+
+- Changed @validations format instead of (,) it is (;) to separate  between the rules. 
+
+---
+
 ## [0.1.6] - 2024-11-20
 
 ### Changed

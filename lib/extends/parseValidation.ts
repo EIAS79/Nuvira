@@ -30,7 +30,6 @@ export class SQONValidation {
         while (this.position < this.lines.length) {
             const line = this.lines[this.position].trim();
     
-            console.log(line, this.position)
             if (line === "@end") {
                 break;
             }
@@ -91,38 +90,10 @@ export class SQONValidation {
     }
     parseRules(rulesStr: string): Record<string, any> {
         const rules: Record<string, any> = {};
-    
-        rulesStr.split(',').forEach(rule => {
+
+        rulesStr.split(';').forEach(rule => {
             const [ruleName, ruleValue] = rule.split('=').map(s => s.trim());
     
-            if (ruleName === 'default') {
-                if (ruleValue === 'TRUE') {
-                    rules[ruleName] = true;
-                } else if (ruleValue === 'FALSE') {
-                    rules[ruleName] = false;
-                } else if (ruleValue === 'NULL') {
-                    rules[ruleName] = null;
-                } else if (ruleValue === 'undefined') {
-                    rules[ruleName] = undefined;
-                } else if (/^\d+$/.test(ruleValue)) {
-                    rules[ruleName] = parseInt(ruleValue, 10);
-                } else if (/^\d+\.\d+$/.test(ruleValue)) {
-                    rules[ruleName] = parseFloat(ruleValue);
-                } else if (ruleValue.startsWith('[') && ruleValue.endsWith(']')) {
-                    const arrayContent = ruleValue.slice(1, -1).trim();
-                    rules[ruleName] = arrayContent ? this.parseArray(arrayContent) : [];
-                } else if (ruleValue.startsWith('{') && ruleValue.endsWith('}')) {
-                    const objectContent = ruleValue.slice(1, -1).trim();
-                    rules[ruleName] = objectContent ? this.parseObject(objectContent) : {};
-                } else if (ruleValue.startsWith('"') && ruleValue.endsWith('"')) {
-                    rules[ruleName] = ruleValue.slice(1, -1);
-                } else {
-                    this.errors.push({ 
-                        line: this.position + 1, 
-                        message: `Invalid format for value of '${ruleName}' in '${rule}'`
-                    });
-                }
-            } else {
                 if (ruleValue === 'true' || ruleValue === 'false') {
                     rules[ruleName] = ruleValue === 'true';
                 } else if (ruleValue === 'null') {
@@ -133,26 +104,35 @@ export class SQONValidation {
                     rules[ruleName] = parseInt(ruleValue, 10);
                 } else if (/^\d+\.\d+$/.test(ruleValue)) {
                     rules[ruleName] = parseFloat(ruleValue);
-                } else if (ruleValue.startsWith('[') && ruleValue.endsWith(']')) {
-                    const arrayContent = ruleValue.slice(1, -1).trim();
-                    rules[ruleName] = arrayContent ? this.parseArray(arrayContent) : [];
-                } else if (ruleValue.startsWith('{') && ruleValue.endsWith('}')) {
-                    const objectContent = ruleValue.slice(1, -1).trim();
-                    rules[ruleName] = objectContent ? this.parseObject(objectContent) : {};
                 } else if (ruleValue.startsWith('"') && ruleValue.endsWith('"')) {
                     rules[ruleName] = ruleValue.slice(1, -1);
+                } else if (ruleValue.startsWith('[') && ruleValue.endsWith(']')) {
+                    const arrayContent = ruleValue.slice(1, -1).trim();
+                    rules[ruleName] = arrayContent
+                        ? this.parseArray(arrayContent).map(item => this.parseValue(item))
+                        : [];
+                } else if (ruleValue.startsWith('{') && ruleValue.endsWith('}')) {
+                    const objectContent = ruleValue.slice(1, -1).trim();
+                    rules[ruleName] = objectContent
+                        ? Object.fromEntries(
+                              Object.entries(this.parseObject(objectContent)).map(([key, value]) => [
+                                  key,
+                                  this.parseValue(value),
+                              ])
+                          )
+                        : {};
                 } else {
                     this.errors.push({ 
                         line: this.position + 1, 
                         message: `Invalid format for value of '${ruleName}' in '${rule}'`
                     });
                 }
-            }
         });
     
         return rules;
     }
             
+
     parseArray(content: string): string[] {
         const result: string[] = [];
         const items = content.split(',');
@@ -162,7 +142,7 @@ export class SQONValidation {
         return result;
       }
     
-    private parseObject(content: string): Record<string, any> {
+    parseObject(content: string): Record<string, any> {
         const obj: Record<string, any> = {};
         const pairs = content.split(',').map(item => item.trim());
         
@@ -173,7 +153,7 @@ export class SQONValidation {
         });
         return obj;
     }
-    
+
 
     validateRulesAgainstSchema(key: string, rules: Record<string, any>): void {
         const schemaTypeArray = this.getSchemaType(key);
@@ -198,8 +178,10 @@ export class SQONValidation {
                 return;
             }
     
-            const isApplicable = validTypes.includes('Any') || schemaTypeArray.some(type => validTypes.includes(type as AllowedTypes));
-    
+            const isApplicable = validTypes.includes('Any') || schemaTypeArray.some(type => 
+                validTypes.includes(type as AllowedTypes));
+            
+
             if (!isApplicable) {
                 this.errors.push({
                     line: this.position + 1,
@@ -207,36 +189,32 @@ export class SQONValidation {
                 });
             }
     
-            if (ruleName === 'default' || ruleName === 'isEqualTo') {
-                const isValueTypeValid = schemaTypeArray.some(type => {
-                    if (type === 'String' && typeof ruleValue === 'string') {
-                        return true;
+            if (ruleName === 'enum' || ruleName === 'hasProperties') {
+                const isValueValid = schemaTypeArray.some(type => {
+            
+                    if ((type === 'ObjectArray' || type === 'Object[]' || type === 'Object') && Array.isArray(ruleValue)) {
+                        const extractedValues = ruleValue.map((item: any) => item.value);
+                        return extractedValues.every(value => ruleValue.some((allowedValue: any) => allowedValue.value === value)) || ruleValue.length === 0;
                     }
-                    if ((type === 'Number' || type === 'NumberArray') && typeof ruleValue === 'number') {
-                        return true;
+                    if (type === 'NumberArray' || type === 'Number[]' && Array.isArray(ruleValue)) {
+                        const extractedValues = ruleValue.map((item: any) => item.value);                        return extractedValues.every((value: number[]) => ruleValue.some((allowedValue: any) => allowedValue.value === value)) || ruleValue.length === 0;
                     }
-                    if ((type === 'Boolean') && typeof ruleValue === 'boolean') {
-                        return true;
+                    if (type === 'StringArray' || type === 'String[]' && Array.isArray(ruleValue)) {
+                        const extractedValues = ruleValue.map((item: any) => item.value);
+                        return extractedValues.every((value: string[]) => ruleValue.includes(value));
                     }
-                    if ((type === 'Array' || type === 'ObjectArray' || type === 'AnyArray') && Array.isArray(ruleValue)) {
-                        return true;
-                    }
-                    if ((type === 'Object') && typeof ruleValue === 'object' && !Array.isArray(ruleValue)) {
-                        return true;
-                    }
-                    if (type === 'Date' && this.isValidDate(ruleValue)) {
-                        return true;
-                    }
+            
                     return false;
                 });
-    
-                if (!isValueTypeValid) {
+            
+                if (!isValueValid) {
                     this.errors.push({
                         line: this.position + 1,
-                        message: `Invalid value type for '${ruleName}' in '${key}'. Expected one of: ${schemaTypeArray.join(', ')}`
+                        message: `Invalid value for '${ruleName}' in '${key}'.`
                     });
                 }
             }
+            
     
             if (schemaTypeArray.includes('ObjectArray')) {
                 this.validateObjectArrayItems(key, rules);

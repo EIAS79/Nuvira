@@ -19,8 +19,8 @@ import { ValidateParams, ValidationResult } from './types/validator';
  */
 export class SQON {
     private section?: 'schema' | 'records';
-    private filePath?: string; // Optional
-    private fileContent?: string; // Optional
+    private filePath?: string;
+    private fileContent?: string;
     private parsingStartTime: number;
     private sectionStartTime: number;
     private metadata: ParsingMetadata;
@@ -60,45 +60,46 @@ export class SQON {
         this.MAX_ERRORS = 50;
         this.allowedTypes = [
             'Number', 'String', 'Binary', 'Date', 'Boolean', 'Uint8Array', 'Binary',
-            'Object', 'Any[]', 'StringArray', 'ObjectArray', 'NumberArray',
+            'Object', 'Any[]', 'StringArray', 'String[]', 'ObjectArray', 'NumberArray', 'Number[]',
             'Number[]', 'String[]', 'Object[]', 'Null', 'undefined', 'Array',
             '[]', 'Any', 'AnyArray',
         ];
         this.validationKeywords = {
-            'custom': ['Any'],
-            'default': ['Any'],
-            'isNull': ['Any'], 
-            'min': ['Number', 'NumberArray', 'Uint8Array'],
-            'max': ['Number', 'NumberArray', 'Uint8Array'],
-            'minLength': ['String', 'StringArray', 'ObjectArray', 'Array', 'Object', 'NumberArray', 'Uint8Array'],
-            'maxLength': ['String', 'StringArray', 'ObjectArray', 'Array', 'Object', 'NumberArray', 'Uint8Array'],
-            'maxSize': ['Binary', 'Array', 'StringArray', 'NumberArray', 'ObjectArray', 'Object', 'Uint8Array'],
-            'required': ['Any'], 
-            'isEqualTo': ['Any'],
-            'isDate': ['Date'],
-            'isPositive': ['Number', 'NumberArray', 'Uint8Array'],
-            'isNegative': ['Number', 'NumberArray', 'Uint8Array'],
-            'isUnique': ['Any'], 
-            'hasProperties': ['Object', 'ObjectArray'], 
-            'notNull': ['Any'],
-            'pattern': ['String'],
-            'isEmail': ['String', 'StringArray'],
-            'isURL': ['String'],
-            'isAlpha': ['String'],
-            'isNumeric': ['String'],
-            'isAlphanumeric': ['String'],
-            'isInteger': ['Number'],
-            'isFloat': ['Number'],
-            'isBoolean': ['Boolean'],
-            'isIP': ['String'],
+            'minLength': ['String', 'StringArray', 'String[]', 'ObjectArray', 'Object[]', 'Array', 'Any[]', '[]', 'Object', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'maxLength': ['String', 'StringArray', 'String[]', 'ObjectArray', 'Object[]', 'Array', 'Any[]', '[]', 'Object', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'isDate': ['Date', 'StringArray', 'String[]', 'NumberArray', 'Number[]' ],
+            'minDate': ['Date', 'StringArray', 'String[]', 'NumberArray', 'Number[]' ],
+            'maxDate': ['Date', 'StringArray', 'String[]', 'NumberArray', 'Number[]' ],
+            'isBoolean': ['Boolean', 'Array', 'Any[]', '[]' ],
+    
+    
+            'hasProperties': ['Object', 'ObjectArray', 'Object[]'], 
+    
             'enum': ['Any'],
-            'minDate': ['Date'],
-            'maxDate': ['Date'],
-            'matchesField': ['Any'],
-            'trim': ['String'],
-            'lowercase': ['String'],
-            'uppercase': ['String']
-        };
+            'notNull': ['Any'],
+            'pattern': ['Any'],
+            'isUnique': ['Any'], 
+            'required': ['Any'], 
+            'isNull': ['Any'], 
+    
+            'min': ['Number', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'max': ['Number', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'isPositive': ['Number', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'isNegative': ['Number', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'isNumeric': ['NumberArray', 'Number[]', 'Number'],
+            'isInteger': ['Number', 'NumberArray', 'Number[]'],
+            'isFloat': ['Number', 'NumberArray', 'Number[]'],
+    
+    
+            'isEmail': ['String', 'StringArray', 'String[]',],
+            'isURL': ['String', 'String[]', 'StringArray'],
+            'isAlpha': ['String', 'String[]', 'StringArray'],
+            'isAlphanumeric': ['String', 'String[]', 'StringArray'],
+            'isIP': ['String', 'String[]', 'StringArray'],
+            'trim': ['String', 'String[]', 'StringArray'],
+            'lowercase': ['String', 'String[]', 'StringArray'],
+            'uppercase': ['String', 'String[]', 'StringArray']
+            };
         this.errors = [];
         this.sectionOrder = [];
         this.fileRules = { Strict: false };
@@ -145,13 +146,11 @@ export class SQON {
         this.parsingStartTime = performance.now();
 
         if (this.fileContent) {
-            // Parse from content string
             this.lines = this.fileContent
                 .split(/\r?\n/)
                 .map((line) => line.trim())
                 .filter((line) => line.length > 0);
         } else if (this.filePath) {
-            // Parse from file at given path
             const stats = await fs.promises.stat(this.filePath!);
             this.metadata.fileSize = formatFileSize(stats.size);
 

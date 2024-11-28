@@ -46,7 +46,6 @@ class Validator {
             for (const type of expectedTypes) {
                 if (type === 'Any')
                     return true;
-                console.log(expectedTypes, value, type, typeof value);
                 if (type === 'String' && typeof value === 'string')
                     return true;
                 if (type === 'Number' && typeof value === 'number')
@@ -63,11 +62,11 @@ class Validator {
                     return true;
                 if (type === 'Uint8Array' && value instanceof Uint8Array)
                     return true;
-                if (type === 'StringArray' && Array.isArray(value) && value.every(v => typeof v === 'string'))
+                if (type === 'StringArray' || type === 'String[]' && Array.isArray(value) && value.every(v => typeof v === 'string'))
                     return true;
-                if (type === 'NumberArray' && Array.isArray(value) && value.every(v => typeof v === 'number'))
+                if (type === 'NumberArray' || type === 'Number[]' && Array.isArray(value) && value.every(v => typeof v === 'number'))
                     return true;
-                if (type === 'ObjectArray' && Array.isArray(value))
+                if (type === 'ObjectArray' || type === 'Object[]' && Array.isArray(value))
                     return true;
                 if (type === 'Array' || type === 'Any[]' || type === '[]')
                     return Array.isArray(value);
@@ -118,39 +117,34 @@ class Validator {
      */
     async validateFields(validateData, data, strict) {
         const validationKeywords = {
-            'custom': ['Any'],
-            'default': ['Any'],
-            'isNull': ['Any'],
-            'min': ['Number', 'NumberArray', 'Uint8Array'],
-            'max': ['Number', 'NumberArray', 'Uint8Array'],
-            'minLength': ['String', 'StringArray', 'ObjectArray', 'Array', 'Object', 'NumberArray', 'Uint8Array'],
-            'maxLength': ['String', 'StringArray', 'ObjectArray', 'Array', 'Object', 'NumberArray', 'Uint8Array'],
-            'maxSize': ['Binary', 'Array', 'StringArray', 'NumberArray', 'ObjectArray', 'Object', 'Uint8Array'],
-            'required': ['Any'],
-            'isEqualTo': ['Any'],
-            'isDate': ['Date'],
-            'isPositive': ['Number', 'NumberArray', 'Uint8Array'],
-            'isNegative': ['Number', 'NumberArray', 'Uint8Array'],
-            'isUnique': ['Any'],
-            'hasProperties': ['Object', 'ObjectArray'],
-            'notNull': ['Any'],
-            'pattern': ['String'],
-            'isEmail': ['String', 'StringArray'],
-            'isURL': ['String'],
-            'isAlpha': ['String'],
-            'isNumeric': ['String'],
-            'isAlphanumeric': ['String'],
-            'isInteger': ['Number'],
-            'isFloat': ['Number'],
-            'isBoolean': ['Boolean'],
-            'isIP': ['String'],
+            'minLength': ['String', 'StringArray', 'String[]', 'ObjectArray', 'Object[]', 'Array', 'Any[]', '[]', 'Object', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'maxLength': ['String', 'StringArray', 'String[]', 'ObjectArray', 'Object[]', 'Array', 'Any[]', '[]', 'Object', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'isDate': ['Date', 'StringArray', 'String[]', 'NumberArray', 'Number[]'],
+            'minDate': ['Date', 'StringArray', 'String[]', 'NumberArray', 'Number[]'],
+            'maxDate': ['Date', 'StringArray', 'String[]', 'NumberArray', 'Number[]'],
+            'isBoolean': ['Boolean', 'Array', 'Any[]', '[]'],
+            'hasProperties': ['Object', 'ObjectArray', 'Object[]'],
             'enum': ['Any'],
-            'minDate': ['Date'],
-            'maxDate': ['Date'],
-            'matchesField': ['Any'],
-            'trim': ['String'],
-            'lowercase': ['String'],
-            'uppercase': ['String']
+            'notNull': ['Any'],
+            'pattern': ['Any'],
+            'isUnique': ['Any'],
+            'required': ['Any'],
+            'isNull': ['Any'],
+            'min': ['Number', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'max': ['Number', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'isPositive': ['Number', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'isNegative': ['Number', 'NumberArray', 'Number[]', 'Uint8Array'],
+            'isNumeric': ['NumberArray', 'Number[]', 'Number'],
+            'isInteger': ['Number', 'NumberArray', 'Number[]'],
+            'isFloat': ['Number', 'NumberArray', 'Number[]'],
+            'isEmail': ['String', 'StringArray', 'String[]',],
+            'isURL': ['String', 'String[]', 'StringArray'],
+            'isAlpha': ['String', 'String[]', 'StringArray'],
+            'isAlphanumeric': ['String', 'String[]', 'StringArray'],
+            'isIP': ['String', 'String[]', 'StringArray'],
+            'trim': ['String', 'String[]', 'StringArray'],
+            'lowercase': ['String', 'String[]', 'StringArray'],
+            'uppercase': ['String', 'String[]', 'StringArray']
         };
         for (const [field, input] of Object.entries(validateData)) {
             const { rules, ...nestedRules } = input;
@@ -228,53 +222,320 @@ class Validator {
                             }
                             break;
                         case 'minLength':
-                            if (value.length < ruleValue) {
+                            if (typeof value === 'string' || value instanceof Uint8Array) {
+                                if (value.length < ruleValue) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} should have a minimum length of ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            else if (Array.isArray(value)) {
+                                if (value.length < ruleValue) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} array should have a minimum length of ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'object' && value !== null) {
+                                if (Object.keys(value).length < ruleValue) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} object should have a minimum number of keys: ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            else {
                                 this.errors.push({
                                     valid: false,
                                     field,
-                                    message: `${field} should have a minimum length of ${ruleValue}`,
+                                    message: `${field} type is not supported for minLength`,
                                 });
                             }
                             break;
                         case 'maxLength':
-                            if (value.length > ruleValue) {
+                            if (typeof value === 'string' || value instanceof Uint8Array) {
+                                if (value.length > ruleValue) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} should have a maximum length of ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            else if (Array.isArray(value)) {
+                                if (value.length > ruleValue) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} array should have a maximum length of ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'object' && value !== null) {
+                                if (Object.keys(value).length > ruleValue) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} object should have a maximum number of keys: ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            else {
                                 this.errors.push({
                                     valid: false,
                                     field,
-                                    message: `${field} should have a maximum length of ${ruleValue}`,
+                                    message: `${field} type is not supported for maxLength`,
                                 });
                             }
                             break;
-                        case 'maxSize':
-                            if (value.length > ruleValue) {
-                                this.errors.push({ valid: false, field, message: `${field} exceeds the maximum size of ${ruleValue}` });
+                        case 'isDate':
+                            if (value instanceof Date) {
+                                break;
+                            }
+                            else if (Array.isArray(value)) {
+                                const areAllDates = value.every(item => {
+                                    const date = new Date(item);
+                                    return !isNaN(date.getTime()) || !isNaN(item);
+                                });
+                                if (!areAllDates) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only valid dates or timestamps`,
+                                    });
+                                }
+                            }
+                            else {
+                                const date = new Date(value);
+                                if (isNaN(date.getTime()) && isNaN(value)) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must be a valid date or timestamp`,
+                                    });
+                                }
                             }
                             break;
-                        case 'isDate':
-                            if (!(value instanceof Date)) {
-                                this.errors.push({ valid: false, field, message: `${field} must be a valid date` });
+                        case 'minDate':
+                            if (value instanceof Date) {
+                                if (value < new Date(ruleValue)) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must be after ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            else if (Array.isArray(value)) {
+                                value.forEach(item => {
+                                    const date = new Date(item);
+                                    if (isNaN(date.getTime()) && isNaN(item))
+                                        return;
+                                    if (date < new Date(ruleValue)) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `An element in ${field} must be after ${ruleValue}`,
+                                        });
+                                    }
+                                });
+                            }
+                            else {
+                                const date = new Date(value);
+                                if ((isNaN(date.getTime()) && isNaN(value)) || date < new Date(ruleValue)) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must be after ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            break;
+                        case 'maxDate':
+                            if (value instanceof Date) {
+                                if (value > new Date(ruleValue)) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must be before ${ruleValue}`,
+                                    });
+                                }
+                            }
+                            else if (Array.isArray(value)) {
+                                value.forEach(item => {
+                                    const date = new Date(item);
+                                    if (isNaN(date.getTime()) && isNaN(item))
+                                        return;
+                                    if (date > new Date(ruleValue)) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `An element in ${field} must be before ${ruleValue}`,
+                                        });
+                                    }
+                                });
+                            }
+                            else {
+                                const date = new Date(value);
+                                if ((isNaN(date.getTime()) && isNaN(value)) || date > new Date(ruleValue)) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must be before ${ruleValue}`,
+                                    });
+                                }
                             }
                             break;
                         case 'isPositive':
-                            if (value <= 0) {
-                                this.errors.push({ valid: false, field, message: `${field} must be positive` });
+                            if (typeof value === 'number') {
+                                if (value <= 0) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be positive` });
+                                }
+                            }
+                            else if (Array.isArray(value)) {
+                                value.forEach(item => {
+                                    if (item <= 0) {
+                                        this.errors.push({ valid: false, field, message: `An element in ${field} must be positive` });
+                                    }
+                                });
+                            }
+                            else if (value instanceof Uint8Array) {
+                                value.forEach(item => {
+                                    if (item <= 0) {
+                                        this.errors.push({ valid: false, field, message: `An element in ${field} must be positive` });
+                                    }
+                                });
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} must be a positive number` });
                             }
                             break;
                         case 'isNegative':
-                            if (value >= 0) {
-                                this.errors.push({ valid: false, field, message: `${field} must be negative` });
+                            if (typeof value === 'number') {
+                                if (value >= 0) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be negative` });
+                                }
+                            }
+                            else if (Array.isArray(value)) {
+                                value.forEach(item => {
+                                    if (item >= 0) {
+                                        this.errors.push({ valid: false, field, message: `An element in ${field} must be negative` });
+                                    }
+                                });
+                            }
+                            else if (value instanceof Uint8Array) {
+                                this.errors.push({ valid: false, field, message: `${field} must be a negative number` });
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} must be a negative number` });
                             }
                             break;
                         case 'isUnique':
                             if (Array.isArray(value)) {
-                                const uniqueValues = new Set(value);
-                                if (uniqueValues.size !== value.length) {
-                                    this.errors.push({ valid: false, field, message: `${field} contains duplicate values` });
-                                }
+                                const seen = new Set();
+                                value.forEach(item => {
+                                    if (typeof item === 'object' && item !== null) {
+                                        const objectKeys = Object.keys(item);
+                                        objectKeys.forEach(key => {
+                                            const objectValue = item[key];
+                                            if (typeof objectValue === 'object' && objectValue !== null) {
+                                                const checkForDuplicates = (nestedObj) => {
+                                                    Object.keys(nestedObj).forEach(nestedKey => {
+                                                        const nestedValue = nestedObj[nestedKey];
+                                                        if (seen.has(nestedValue)) {
+                                                            this.errors.push({
+                                                                valid: false,
+                                                                field,
+                                                                message: `${field} contains duplicate value for key '${nestedKey}': ${nestedValue}`,
+                                                            });
+                                                        }
+                                                        else {
+                                                            seen.add(nestedValue);
+                                                        }
+                                                    });
+                                                };
+                                                checkForDuplicates(objectValue);
+                                            }
+                                            else {
+                                                if (seen.has(objectValue)) {
+                                                    this.errors.push({
+                                                        valid: false,
+                                                        field,
+                                                        message: `${field} contains duplicate value for key '${key}': ${objectValue}`,
+                                                    });
+                                                }
+                                                else {
+                                                    seen.add(objectValue);
+                                                }
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        if (seen.has(item)) {
+                                            this.errors.push({
+                                                valid: false,
+                                                field,
+                                                message: `${field} contains duplicate value: ${item}`,
+                                            });
+                                        }
+                                        else {
+                                            seen.add(item);
+                                        }
+                                    }
+                                });
+                            }
+                            else if (typeof value === 'object' && value !== null) {
+                                const seen = new Set();
+                                const keys = Object.keys(value);
+                                keys.forEach(key => {
+                                    const currentValue = value[key];
+                                    if (typeof currentValue === 'object' && currentValue !== null) {
+                                        const checkForDuplicates = (nestedObj) => {
+                                            Object.keys(nestedObj).forEach(nestedKey => {
+                                                const nestedValue = nestedObj[nestedKey];
+                                                if (seen.has(nestedValue)) {
+                                                    this.errors.push({
+                                                        valid: false,
+                                                        field,
+                                                        message: `${field} contains duplicate value for key '${nestedKey}': ${nestedValue}`,
+                                                    });
+                                                }
+                                                else {
+                                                    seen.add(nestedValue);
+                                                }
+                                            });
+                                        };
+                                        checkForDuplicates(currentValue);
+                                    }
+                                    else {
+                                        if (seen.has(currentValue)) {
+                                            this.errors.push({
+                                                valid: false,
+                                                field,
+                                                message: `${field} contains duplicate value for key '${key}': ${currentValue}`,
+                                            });
+                                        }
+                                        else {
+                                            seen.add(currentValue);
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                this.errors.push({
+                                    valid: false,
+                                    field,
+                                    message: `${field} is not a valid type for uniqueness check`,
+                                });
                             }
                             break;
                         case 'hasProperties':
-                            if (typeof value === 'object' && value !== null) {
+                            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
                                 const missingProps = ruleValue.filter((prop) => !(prop in value));
                                 if (missingProps.length > 0) {
                                     this.errors.push({
@@ -284,50 +545,344 @@ class Validator {
                                     });
                                 }
                             }
+                            else if (Array.isArray(value)) {
+                                value.forEach((item, index) => {
+                                    if (typeof item === 'object' && item !== null) {
+                                        const missingProps = ruleValue.filter((prop) => !(prop in item));
+                                        if (missingProps.length > 0) {
+                                            this.errors.push({
+                                                valid: false,
+                                                field,
+                                                message: `Object at index ${index} in ${field} is missing required properties: ${missingProps.join(', ')}`,
+                                            });
+                                        }
+                                    }
+                                    else {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `Element at index ${index} in ${field} is not a valid object`,
+                                        });
+                                    }
+                                });
+                            }
                             break;
                         case 'pattern':
-                            if (typeof value === 'string' && !new RegExp(ruleValue).test(value)) {
-                                this.errors.push({ valid: false, field, message: `${field} does not match the required pattern` });
+                            if (typeof value === 'string') {
+                                if (!ruleValue.test(value)) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} does not match the pattern`,
+                                    });
+                                }
+                            }
+                            else if (Array.isArray(value)) {
+                                value.forEach(item => {
+                                    if (typeof item === 'string' && !ruleValue.test(item)) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `${field} contains an element that does not match the pattern: ${item}`,
+                                        });
+                                    }
+                                });
+                            }
+                            else if (typeof value === 'number') {
+                                if (!ruleValue.test(value.toString())) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} does not match the pattern`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'object' && value !== null) {
+                                Object.values(value).forEach(item => {
+                                    if (typeof item === 'string' && !ruleValue.test(item)) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `${field} contains a value that does not match the pattern: ${item}`,
+                                        });
+                                    }
+                                });
                             }
                             break;
                         case 'isEmail':
-                            if (typeof value === 'string' && !/^\S+@\S+\.\S+$/.test(value)) {
-                                this.errors.push({ valid: false, field, message: `${field} must be a valid email address` });
+                            if (Array.isArray(value)) {
+                                if (!value.every(v => typeof v === 'string' && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v))) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only valid email addresses in all elements`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'string') {
+                                if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be a valid email address` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for isEmail` });
                             }
                             break;
                         case 'isURL':
-                            if (typeof value === 'string' && !/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/.test(value)) {
-                                this.errors.push({ valid: false, field, message: `${field} must be a valid URL` });
+                            const urlRegex = /^(https?|ftp):\/\/(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[a-z]{2,})\b(?:\/[^\s]*)?$/i;
+                            if (typeof value === 'string') {
+                                if (!urlRegex.test(value)) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must be a valid URL`,
+                                    });
+                                }
+                            }
+                            else if (Array.isArray(value)) {
+                                value.forEach(item => {
+                                    if (typeof item === 'string' && !urlRegex.test(item)) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `${field} contains an invalid URL: ${item}`,
+                                        });
+                                    }
+                                });
                             }
                             break;
                         case 'isAlpha':
-                            if (typeof value === 'string' && !/^[A-Za-z]+$/.test(value)) {
-                                this.errors.push({ valid: false, field, message: `${field} must contain only alphabetic characters` });
+                            if (Array.isArray(value)) {
+                                if (!value.every(v => typeof v === 'string' && /^[A-Za-z]+$/.test(v))) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only alphabetic characters in all elements`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'string') {
+                                if (!/^[A-Za-z]+$/.test(value)) {
+                                    this.errors.push({ valid: false, field, message: `${field} must contain only alphabetic characters` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for isAlpha` });
                             }
                             break;
                         case 'isNumeric':
-                            if (typeof value === 'string' && !/^\d+$/.test(value)) {
-                                this.errors.push({ valid: false, field, message: `${field} must contain only numeric characters` });
+                            if (Array.isArray(value)) {
+                                if (!value.every(v => typeof v === 'number' || /^\d+$/.test(String(v)))) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only numeric values in all elements`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'number' || /^\d+$/.test(String(value))) {
+                                if (typeof value !== 'number' && !/^\d+$/.test(String(value))) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be a numeric value` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for isNumeric` });
+                            }
+                            break;
+                        case 'isAlphanumeric':
+                            if (Array.isArray(value)) {
+                                if (!value.every(v => typeof v === 'string' && /^[A-Za-z0-9]+$/.test(v))) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only alphanumeric characters in all elements`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'string') {
+                                if (!/^[A-Za-z0-9]+$/.test(value)) {
+                                    this.errors.push({ valid: false, field, message: `${field} must contain only alphanumeric characters` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for isAlphanumeric` });
+                            }
+                            break;
+                        case 'isInteger':
+                            if (Array.isArray(value)) {
+                                if (!value.every(v => Number.isInteger(v))) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only integer values in all elements`,
+                                    });
+                                }
+                            }
+                            else if (Number.isInteger(value)) {
+                                if (!Number.isInteger(value)) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be an integer` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for isInteger` });
+                            }
+                            break;
+                        case 'isFloat':
+                            if (Array.isArray(value)) {
+                                if (!value.every(v => typeof v === 'number' && !Number.isInteger(v))) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only float values in all elements`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'number' && !Number.isInteger(value)) {
+                                if (typeof value !== 'number' || Number.isInteger(value)) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be a float` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for isFloat` });
                             }
                             break;
                         case 'isBoolean':
-                            if (typeof value !== 'boolean') {
-                                this.errors.push({ valid: false, field, message: `${field} must be a boolean` });
+                            if (Array.isArray(value)) {
+                                if (!value.every(v => typeof v === 'boolean')) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only boolean values in all elements`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'boolean') {
+                                if (typeof value !== 'boolean') {
+                                    this.errors.push({ valid: false, field, message: `${field} must be a boolean` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for isBoolean` });
+                            }
+                            break;
+                        case 'isIP':
+                            const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                            if (Array.isArray(value)) {
+                                if (!value.every(v => typeof v === 'string' && ipRegex.test(v))) {
+                                    this.errors.push({
+                                        valid: false,
+                                        field,
+                                        message: `${field} must contain only valid IP addresses`,
+                                    });
+                                }
+                            }
+                            else if (typeof value === 'string') {
+                                if (!ipRegex.test(value)) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be a valid IP address` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for isIP` });
                             }
                             break;
                         case 'enum':
-                            if (!ruleValue.includes(value)) {
-                                this.errors.push({ valid: false, field, message: `${field} must be one of ${ruleValue}` });
+                            if (Array.isArray(value)) {
+                                value.forEach(item => {
+                                    if (!ruleValue.includes(item)) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `${field} contains an invalid value. It must be one of ${ruleValue.join(', ')}`,
+                                        });
+                                    }
+                                });
+                            }
+                            else if (!ruleValue.includes(value)) {
+                                this.errors.push({ valid: false, field, message: `${field} must be one of ${ruleValue.join(', ')}` });
                             }
                             break;
-                        case 'minDate':
-                            if (value instanceof Date && value < new Date(ruleValue)) {
-                                this.errors.push({ valid: false, field, message: `${field} must be after ${ruleValue}` });
+                        case 'trim':
+                            if (Array.isArray(value)) {
+                                value.forEach((item, index) => {
+                                    if (typeof item !== 'string') {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `Element at index ${index} of ${field} is not a valid string to trim`,
+                                        });
+                                    }
+                                    else if (item !== item.trim()) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `Element at index ${index} of ${field} must be trimmed`,
+                                        });
+                                    }
+                                });
+                            }
+                            else if (typeof value === 'string') {
+                                if (value !== value.trim()) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be trimmed` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for trim` });
                             }
                             break;
-                        case 'maxDate':
-                            if (value instanceof Date && value > new Date(ruleValue)) {
-                                this.errors.push({ valid: false, field, message: `${field} must be before ${ruleValue}` });
+                        case 'lowercase':
+                            if (Array.isArray(value)) {
+                                value.forEach((item, index) => {
+                                    if (typeof item !== 'string') {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `Element at index ${index} of ${field} is not a valid string to convert to lowercase`,
+                                        });
+                                    }
+                                    else if (item !== item.toLowerCase()) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `Element at index ${index} of ${field} must be in lowercase`,
+                                        });
+                                    }
+                                });
+                            }
+                            else if (typeof value === 'string') {
+                                if (value !== value.toLowerCase()) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be in lowercase` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for lowercase` });
+                            }
+                            break;
+                        case 'uppercase':
+                            if (Array.isArray(value)) {
+                                value.forEach((item, index) => {
+                                    if (typeof item !== 'string') {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `Element at index ${index} of ${field} is not a valid string to convert to uppercase`,
+                                        });
+                                    }
+                                    else if (item !== item.toUpperCase()) {
+                                        this.errors.push({
+                                            valid: false,
+                                            field,
+                                            message: `Element at index ${index} of ${field} must be in uppercase`,
+                                        });
+                                    }
+                                });
+                            }
+                            else if (typeof value === 'string') {
+                                if (value !== value.toUpperCase()) {
+                                    this.errors.push({ valid: false, field, message: `${field} must be in uppercase` });
+                                }
+                            }
+                            else {
+                                this.errors.push({ valid: false, field, message: `${field} is not a valid type for uppercase` });
                             }
                             break;
                         default:

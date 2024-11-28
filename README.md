@@ -95,10 +95,10 @@ tags -> StringArray
   <h4>Example Validations</h4>
   <pre><code>
 @validations
-username -> required=true, minLength=3
-age -> required=true, min=18, max=120
+username -> required=true; minLength=3
+age -> required=true; min=18; max=120
 createdDate -> isDate=true
-tags -> minLength=1, maxLength=10
+tags -> minLength=1; maxLength=10
 @end
   </code></pre>
 </details>

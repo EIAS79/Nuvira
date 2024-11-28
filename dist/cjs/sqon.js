@@ -52,7 +52,6 @@ fetch("https://registry.npmjs.com/-/v1/search?text=sqon-parser")
 })
     .then(function (data) {
     const version = data.objects[0]?.package?.version;
-    console.log(version, data.objects, data.objects[0], data.objects[0]?.package);
     if (version && getLibraryVersion("sqon-parser") !== version) {
         console.error(CYAN +
             "Error: Please update sqon-parser.js to the latest version (" + version + ")." +
