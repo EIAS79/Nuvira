@@ -310,7 +310,7 @@ export class SQONRecords  {
         
         if (types.length === 0) return 'Array';
         
-        if (types.every(type => type === 'NumberArray')) {
+        if (types.every(type => type === 'Number')) {
             return 'NumberArray';
         }
         if (types.every(type => type === 'String')) {

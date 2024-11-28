@@ -108,6 +108,12 @@ ipAddress -> isIP=true
     _0{ name("Joe"); };
     _1{ name("Elias"); };
   ];
+    tt[ 
+    _0{ name("Joe"); };
+    _1(23);
+    _2{ name("Elias"); };
+    _3[ _0(1); _1("random value"); ];
+  ];
   ObjectValue{ name("Ali"); };
 #1 -> name("Anas"); age(25); nullValue(NULL); booleanValue(TRUE); DateValue(1993-05-20T00:00:00Z); undefinedValue(); BinaryValue(<Buffer 21 231 21 13 56>); RandomValue(21); StringArrayValue[ _0("String 1"); _1("String 2"); _2("String 3"); ]; NumberArrayValue[ _0(1); _1(21); _2(32); ]; ObjectArrayValue[ _0{ name("Joe"); }; _1{ name("Elias"); }; ]; ObjectValue{ name("Ali"); };
 @end
