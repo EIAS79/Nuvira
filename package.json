@@ -1,14 +1,14 @@
 {
   "name": "sqon-parser",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Structured Queue Object Notation. New Database format (Readable & Supports Binary, Date & Bigint), (Inbuilt Schema & constraints).",
   "main": "./dist/cjs/sqon.js",
   "module": "./dist/esm/sqon.js",
   "types": "./dist/esm/sqon.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/cjs/index.js",
-      "import": "./dist/esm/index.js"
+      "require": "./dist/cjs/sqon.js",
+      "import": "./dist/esm/sqon.js"
     }
   },
   "author": "zenith-79",

@@ -256,7 +256,7 @@ export class SQONRecords {
         const types = Array.from(itemTypes);
         if (types.length === 0)
             return 'Array';
-        if (types.every(type => type === 'NumberArray')) {
+        if (types.every(type => type === 'Number')) {
             return 'NumberArray';
         }
         if (types.every(type => type === 'String')) {
