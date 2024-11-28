@@ -1,4 +1,4 @@
-const SQON = require('../dist/index');  // Assuming SQON parser is in dist/parser
+const SQON = require('sqon-parser');  // Assuming sqon-parser being installed
 
 // Parse a .sqon file with sections for schema and validations
 const parser1 = new SQON({ filePath: './test.sqon', sections: "schema" });
