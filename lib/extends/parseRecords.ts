@@ -178,7 +178,7 @@ export class SQONRecords  {
                 key = kvMatch[3];
                 const objectContent = this.extractObjectContent(docContent, lastIndex);
                 const objectKeyValuePairs = objectContent === '{}' ? {} : this.parseObjectContent(objectContent, docNumber, lineNumber);
-                keyValuePairs.push({ key, value: objectKeyValuePairs, type: 'object' });
+                keyValuePairs.push({ key, value: objectKeyValuePairs, type: 'Object' });
     
                 lastIndex += objectContent.length + 2;
                 kvPattern.lastIndex = lastIndex;
@@ -365,7 +365,7 @@ export class SQONRecords  {
                 key = kvMatch[3];
                 const nestedObjectContent = this.extractObjectContent(objectContent, kvPattern.lastIndex);
                 const nestedObjectKeyValuePairs = nestedObjectContent === '{}' ? {} : this.parseObjectContent(nestedObjectContent, docNumber, lineNumber);
-                objectKeyValuePairs.push({ key, value: nestedObjectKeyValuePairs, type: 'object' });
+                objectKeyValuePairs.push({ key, value: nestedObjectKeyValuePairs, type: 'Object' });
                 lastIndex += nestedObjectContent.length + 2;
                 kvPattern.lastIndex = lastIndex;
 

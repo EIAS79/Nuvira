@@ -1,4 +1,7 @@
-export class SQONRecords {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SQONRecords = void 0;
+class SQONRecords {
     lines;
     position;
     records;
@@ -518,4 +521,5 @@ export class SQONRecords {
         return `INFO: ${message}`;
     }
 }
+exports.SQONRecords = SQONRecords;
 //# sourceMappingURL=parseRecords.js.map
