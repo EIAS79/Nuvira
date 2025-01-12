@@ -108,6 +108,18 @@ export class Validator {
       }
     }
 
+    if (strict) {
+      for (const key of Object.keys(data)) {
+        if (!schema.hasOwnProperty(key)) {
+          this.errors.push({
+            valid: false,
+            field: key,
+            message: `Extra field '${key}' found in data but not defined in schema.`,
+          });
+        }
+      }
+    }
+
     return { valid: this.errors.length === 0 };
   }
 

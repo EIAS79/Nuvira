@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SQON = void 0;
+exports.Nuvira = void 0;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const CYAN = "\x1b[36m";
@@ -46,20 +46,20 @@ const getLibraryVersion = function (library) {
     const version = (dependencies[library] || devDependencies[library] || "").replace(/^(\^|~)/, "") || "Not installed";
     return version;
 };
-fetch("https://registry.npmjs.com/-/v1/search?text=sqon-parser")
+fetch("https://registry.npmjs.com/-/v1/search?text=nuvira")
     .then(function (response) {
     return response.json();
 })
     .then(function (data) {
     const version = data.objects[0]?.package?.version;
-    if (version && getLibraryVersion("sqon-parser") !== version) {
+    if (version && getLibraryVersion("nuvira") !== version) {
         console.error(CYAN +
-            "Error: Please update sqon-parser.js to the latest version (" + version + ")." +
+            "Error: Please update nuvira to the latest version (" + version + ")." +
             RESET);
     }
 })
     .catch(function (error) { });
 var parser_1 = require("./parser");
-Object.defineProperty(exports, "SQON", { enumerable: true, get: function () { return parser_1.SQON; } });
+Object.defineProperty(exports, "Nuvira", { enumerable: true, get: function () { return parser_1.Nuvira; } });
 ;
-//# sourceMappingURL=sqon.js.map
+//# sourceMappingURL=nuvira.js.map

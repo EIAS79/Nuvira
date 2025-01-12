@@ -1,15 +1,15 @@
-import { AllowedTypes, ParsedResult, ParserConfig, Document } from './types/general';
+import { AllowedTypes, ParsedResult, ParserConfig, Document, SchemaType } from './types/general';
 import { ValidateParams, ValidationResult } from './types/validator';
 /**
- * Represents the main class for handling SQON data parsing, validation, and conversion.
+ * Represents the main class for handling Nuvira data parsing, validation, and conversion.
  * It processes input files, validates them against defined rules, and tracks the parsing metadata.
  *
- * @class SQON
- * @param {ParserConfig} config - Configuration for parsing SQON data.
- * @param {string} config.filePath - Path to the SQON file to parse.
+ * @class Nuvira
+ * @param {ParserConfig} config - Configuration for parsing Nuvira data.
+ * @param {string} config.filePath - Path to the Nuvira file to parse.
  * @param {('schema' | 'validations' | 'records')} [config.section] - Optional section to focus on during parsing.
  */
-export declare class SQON {
+export declare class Nuvira {
     private section?;
     private filePath?;
     private fileContent?;
@@ -18,6 +18,7 @@ export declare class SQON {
     private metadata;
     lines: string[];
     position: number;
+    private relations;
     parsedSchema: Record<string, any>;
     validations: Record<string, any>;
     records: Document[];
@@ -30,55 +31,59 @@ export declare class SQON {
     sectionOrder: string[];
     fileRules: {
         Strict: boolean;
+        schemaName: string;
+        Size: Number;
+        Locked: boolean;
+        Type: SchemaType;
     };
     MAX_ERRORS: number;
     /**
-     * Constructs an instance of the SQON parser and initializes its properties.
+     * Constructs an instance of the Nuvira parser and initializes its properties.
      *
      * @param {ParserConfig} config - The configuration object for parsing the file.
-     * @param {string} config.filePath - Path to the SQON file that will be parsed.
+     * @param {string} config.filePath - Path to the Nuvira file that will be parsed.
      * @param {('schema' | 'validations' | 'records')} [config.section] - The specific section to focus on during parsing (optional).
      */
     constructor({ filePath, section, fileContent }: ParserConfig);
     /**
-     * Main method that handles the parsing of the SQON file, processes sections, and gathers metadata.
+     * Main method that handles the parsing of the Nuvira file, processes sections, and gathers metadata.
      * It reads the file, processes its sections, and returns parsed results along with metadata.
      *
      * @async
      * @returns {Promise<ParsedResult>} - A promise that resolves to the parsed results, including metadata and errors.
      */
     parse(): Promise<ParsedResult>;
-    /**
-     * Parses the lines of the SQON file and processes the different sections.
-     * It reads through the file and determines what sections need to be processed (schema, validations, records).
-     * It updates the `position` and `lines` and handles section-specific logic.
-     *
-     * @returns {ParsedResult} - The parsed result, including schema, validations, records, and errors.
-     */
     private parseLines;
     /**
-     * Checks and enforces the order of sections within the SQON file.
-     * Ensures that sections like `@schema`, `@validations`, and `@records` follow a specific order.
+     * Checks and enforces the order of sections within the Nuvira file.
+     * Ensures that sections like `@schema`, `@relations`, `@validations`, and `@records` follow a specific order.
      *
-     * @param {string} section - The section name that is being processed (e.g., '@schema', '@validations', '@records').
+     * @param {string} section - The section name that is being processed (e.g., '@schema', '@relations', '@validations', '@records').
      */
     private checkSectionOrder;
     /**
-     * Parses the `@schema` section of the SQON file.
+     * Parses the `@schema` section of the Nuvira file.
      * This method processes the schema lines, validates the schema fields, and populates the `parsedSchema` property.
      *
      * @returns {void} - No return value. Updates the `parsedSchema` and `errors` properties of the instance.
      */
     private parseSchema;
     /**
-     * Parses the `@validations` section of the SQON file.
+     * Parses the `@relations` section of the Nuvira file.
+     * This method processes the relation lines and populates the `relations` property.
+     *
+     * @returns {void} - No return value. Updates the `relations` and `errors` properties of the instance.
+     */
+    private parseRelations;
+    /**
+     * Parses the `@validations` section of the Nuvira file.
      * This method processes the validation rules, validates them against the schema, and populates the `validations` property.
      *
      * @returns {void} - No return value. Updates the `validations` and `errors` properties of the instance.
      */
     private parseValidation;
     /**
-     * Parses the `@records` section of the SQON file.
+     * Parses the `@records` section of the Nuvira file.
      * This method processes the records and stores them in the `records` property.
      *
      * @returns {void} - No return value. Updates the `records` and `errors` properties of the instance.

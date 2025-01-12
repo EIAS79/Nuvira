@@ -1,14 +1,14 @@
 {
-  "name": "sqon-parser",
-  "version": "1.1.3",
-  "description": "Structured Queue Object Notation. New Database format (Readable & Supports Binary, Date & Bigint), (Inbuilt Schema & constraints).",
-  "main": "./dist/cjs/sqon.js",
-  "module": "./dist/esm/sqon.js",
-  "types": "./dist/esm/sqon.d.ts",
+  "name": "nuvira-parser",
+  "version": "1.0.0",
+  "description": "Nuvira Database. New Database format (Readable & Easy to use), (Inbuilt Schema & constraints & rules & relations).",
+  "main": "./dist/cjs/Nuvira.js",
+  "module": "./dist/esm/Nuvira.js",
+  "types": "./dist/esm/Nuvira.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/cjs/sqon.js",
-      "import": "./dist/esm/sqon.js"
+      "require": "./dist/cjs/Nuvira.js",
+      "import": "./dist/esm/Nuvira.js"
     }
   },
   "author": "zenith-79",
@@ -19,17 +19,17 @@
     "build:cjs": "tsc --build tsconfig.cjs.json --force",
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "watch": "tsc -w",
-    "start": "node ./dist/cjs/sqon.js",
-    "dev": "ts-node ./lib/sqon.ts",
+    "start": "node ./dist/cjs/Nuvira.js",
+    "dev": "ts-node ./lib/Nuvira.ts",
     "publish:prep": "npm run build",
     "publish": "npm run publish:prep && npm publish"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/EIAS79/SQON.git"
+    "url": "https://github.com/EIAS79/Nuvira.git"
   },
   "bugs": {
-    "url": "https://github.com/EIAS79/SQON/issues"
+    "url": "https://github.com/EIAS79/Nuvira/issues"
   },
   "files": [
     "lib",
@@ -38,29 +38,28 @@
     "changelog.md"
   ],
   "keywords": [
-    "sqon",
-    "structured queue object notation",
+    "Nuvira",
     "custom database",
     "custom format database",
     "parser",
-    "sqon-parser",
-    "sqon parser",
+    "Nuvira-parser",
+    "Nuvira parser",
     "JSON",
     "SQL",
     "database",
-    "SQON",
+    "Nuvira",
     "data conversion",
     "format conversion",
-    "json to sqon",
-    "sqon to json",
-    "sql to sqon",
-    "sqon to sql",
-    "yaml to sqon",
-    "sqon to yaml",
-    "csv to sqon",
-    "sqon to csv",
-    "xml to sqon",
-    "sqon to xml",
+    "json to Nuvira",
+    "Nuvira to json",
+    "sql to Nuvira",
+    "Nuvira to sql",
+    "yaml to Nuvira",
+    "Nuvira to yaml",
+    "csv to Nuvira",
+    "Nuvira to csv",
+    "xml to Nuvira",
+    "Nuvira to xml",
     "data transformation",
     "data serialization",
     "cross-format conversion",

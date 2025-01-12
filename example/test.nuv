@@ -58,43 +58,29 @@ ipAddress -> String
 @end
 
 @validations
-
 name -> required=true; minLength=3; isUnique=true; isAlpha=true; trim=true; lowercase=true
-  !# Ensures that 'name' field is required, has a minimum length of 3, is unique, contains only alphabetic characters, is trimmed (no leading/trailing spaces), and is converted to lowercase.
-  
+!# Ensures that 'name' field is required, has a minimum length of 3, is unique, contains only alphabetic characters, is trimmed (no leading/trailing spaces), and is converted to lowercase.
 age -> required=true; max=70; min=8; isPositive=true; isInteger=true; notNull=true
-  !# Ensures that 'age' is required, must be between 8 and 70, is a positive integer, and is not null.
-
+!# Ensures that 'age' is required, must be between 8 and 70, is a positive integer, and is not null.
 NumberArrayValue -> maxLength=4; minLength=1; isUnique=true; max=100; min=5; isPositive=true; isNumeric=true; enum=[5,10,20,50]
-  !# Ensures 'NumberArrayValue' is an array with a length between 1 and 4, all values are unique, numbers between 5 and 100, and must be numeric and part of a specified enum.
-
+!# Ensures 'NumberArrayValue' is an array with a length between 1 and 4, all values are unique, numbers between 5 and 100, and must be numeric and part of a specified enum.
 StringArrayValue -> maxLength=4; minLength=1; isUnique=true; isAlphanumeric=true; pattern="^[A-Za-z0-9]+$"
-  !# Ensures 'StringArrayValue' is an array with a length between 1 and 4, contains unique alphanumeric strings, and matches the specified pattern.
-
+!# Ensures 'StringArrayValue' is an array with a length between 1 and 4, contains unique alphanumeric strings, and matches the specified pattern.
 ObjectValue -> maxLength=4; hasProperties=["name", "value"]; notNull=true
-  !# Ensures that 'ObjectValue' is an object with a maximum of 4 properties, must have 'name' and 'value' properties, and cannot be null.
-
+!# Ensures that 'ObjectValue' is an object with a maximum of 4 properties, must have 'name' and 'value' properties, and cannot be null.
 ObjectValue.name -> required=true; minLength=3; maxLength=50; pattern="^[A-Za-z]+$"; isAlpha=true; trim=true
-  !# Ensures 'ObjectValue.name' is required, has a length between 3 and 50 characters, contains only alphabetic characters, matches the specified pattern, and is trimmed.
-
+!# Ensures 'ObjectValue.name' is required, has a length between 3 and 50 characters, contains only alphabetic characters, matches the specified pattern, and is trimmed.
 ObjectArrayValue -> required=true; maxLength=10; minLength=2; hasProperties=["name", "type"]; isUnique=true
-  !# Ensures 'ObjectArrayValue' is an array with a minimum length of 2 and maximum length of 10, each object has 'name' and 'type' properties, and the objects are unique in the array.
-
+!# Ensures 'ObjectArrayValue' is an array with a minimum length of 2 and maximum length of 10, each object has 'name' and 'type' properties, and the objects are unique in the array.
 DateValue -> isDate=true; minDate="2023-01-01"; maxDate="2025-12-31"
-  !# Ensures 'DateValue' is a valid date, within the range from January 1, 2023, to December 31, 2025.
-
+!# Ensures 'DateValue' is a valid date, within the range from January 1, 2023, to December 31, 2025.
 booleanValue -> isBoolean=true
-  !# Ensures 'booleanValue' is a valid boolean (true or false).
-
+!# Ensures 'booleanValue' is a valid boolean (true or false).
 url -> isURL=true
-  !# Ensures 'url' is a valid URL format.
-
+!# Ensures 'url' is a valid URL format.
 email -> isEmail=true
-  !# Ensures 'email' is a valid email address format.
-
+!# Ensures 'email' is a valid email address format.
 ipAddress -> isIP=true
-  !# Ensures 'ipAddress' is a valid IP address.
-
 @end
 
 

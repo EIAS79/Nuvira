@@ -14,21 +14,21 @@ const getLibraryVersion = function(library: string): string {
     return version;
 };
 
-fetch("https://registry.npmjs.com/-/v1/search?text=sqon-parser")
+fetch("https://registry.npmjs.com/-/v1/search?text=nuvira")
     .then(function(response: Response) {
         return response.json();
     })
     .then(function(data: any) {
         const version: string = data.objects[0]?.package?.version;
-        if (version && getLibraryVersion("sqon-parser") !== version) {
+        if (version && getLibraryVersion("nuvira") !== version) {
             console.error(CYAN +
-                "Error: Please update sqon-parser.js to the latest version (" + version + ")." +
+                "Error: Please update nuvira to the latest version (" + version + ")." +
                 RESET);
         }
     })
     .catch(function(error: any) {});
 
-    export { SQON } from "./parser";;
+    export { Nuvira } from "./parser";;
     export type * from './types/validator';
     export type * from './types/general';
     export type * from './types/records';

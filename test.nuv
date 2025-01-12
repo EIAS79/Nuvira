@@ -1,0 +1,52 @@
+!# Strict mode coverts data from semi-sql to very strict sql
+!# when Strict is set as true, records must follow same order of schema and disallow multi-types of schema and forbids undefined value and type
+*STRICT=FALSE *SIZE=100 *TYPE=NODE *LOCKED=TRUE
+
+!# schema to set types of your record and their structure
+@schema: Users-Info
+Users -> Object[] {
+    name -> String
+    age -> Number
+    friends -> StringArray | Null | undefined
+    iSstudent -> Boolean
+    image -> Binary
+    birthDate -> Date | Number
+    nationality -> Object {
+        countries -> String[]
+        city -> String | Null
+        postcode -> String | undefined
+    }
+}
+@end
+
+@relations
+Employee(Salary) -> Users(name) {
+    type = "one-to-many";
+    onDelete = "cascade";
+    onUpdate = "restrict";
+}
+
+Company(age) -> Users(age) {
+    type = "one-to-one";
+    onDelete = "cascade";
+    onUpdate = "restrict";
+}
+@end
+
+
+!# validations where it check if the data of records validates with records
+@validations
+Users -> required=true; maxLength=50; isUnique=true
+Users.name -> required=true; minLength=3; uppercase=true
+@end
+
+!# Records section where data is stored
+@records
+#0 -> Users[
+    _0{ 
+      name("Elias"); age(20); friends[ _0("Marco"); _1("Kmosha"); _2("Abdullah"); ];
+      iSstudent(TRUE); image(<Buffer 23 32 43 56 ..>); birthDate(05/04/2004);
+      nationality{ countries[ _0("Egypt"); _1("Poland"); ]; city(NULL); postcode(); };
+    };
+];
+@end

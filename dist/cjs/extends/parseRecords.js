@@ -31,7 +31,6 @@ class SQONRecords {
             return {
                 records: [],
                 position: this.position,
-                currentLine: this.lines[this.position],
                 errors: this.errors
             };
         }
@@ -59,7 +58,6 @@ class SQONRecords {
         return {
             records: this.records,
             position: this.position,
-            currentLine: this.position < this.lines.length ? this.lines[this.position] : '',
             errors: this.errors
         };
     }

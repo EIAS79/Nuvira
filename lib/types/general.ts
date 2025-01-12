@@ -6,6 +6,7 @@ export type Document = {
 
 export interface ParsedResult {
     fileRules: { Strict: boolean; };
+    relations: Record<string, any>;
     schema: Record<string, any>;
     validations: Record<string, any>;
     records: Document[];
@@ -28,6 +29,7 @@ export interface ParsingMetadata {
     };
     sections: {
         schema: { timeMs: number };
+        relations: { timeMs: number }
         validations: { timeMs: number };
         records: { timeMs: number };
     };
@@ -39,6 +41,7 @@ export interface ParserConfig {
     section?: 'schema' | 'records';
 }
 
+export type SchemaType = 'ROOT' | 'NODE' | 'LEAF' | 'ISOLATED' | 'REFERENCE'
 
 export type AllowedTypes =
     | 'Any'

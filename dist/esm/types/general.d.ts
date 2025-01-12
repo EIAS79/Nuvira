@@ -10,6 +10,7 @@ export interface ParsedResult {
     fileRules: {
         Strict: boolean;
     };
+    relations: Record<string, any>;
     schema: Record<string, any>;
     validations: Record<string, any>;
     records: Document[];
@@ -36,6 +37,9 @@ export interface ParsingMetadata {
         schema: {
             timeMs: number;
         };
+        relations: {
+            timeMs: number;
+        };
         validations: {
             timeMs: number;
         };
@@ -49,5 +53,6 @@ export interface ParserConfig {
     fileContent?: string;
     section?: 'schema' | 'records';
 }
+export type SchemaType = 'ROOT' | 'NODE' | 'LEAF' | 'ISOLATED' | 'REFERENCE';
 export type AllowedTypes = 'Any' | 'undefined' | 'Null' | 'Number' | 'NumberArray' | 'String' | 'StringArray' | 'ObjectArray' | 'Any[]' | 'Object[]' | 'Number[]' | 'String[]' | '[]' | 'Array' | 'Object' | 'Binary' | 'Uint8Array' | 'Date' | 'Boolean';
 //# sourceMappingURL=general.d.ts.map

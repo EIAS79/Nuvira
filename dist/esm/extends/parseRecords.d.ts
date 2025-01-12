@@ -29,7 +29,6 @@ export declare class SQONRecords {
             }>;
         }>;
         position: number;
-        currentLine: string;
         errors: {
             line: number | null;
             message: string;

@@ -34,7 +34,7 @@ class SQONValidation {
             }
             this.position++;
         }
-        return { validations: this.validations, errors: this.errors, lines: this.lines, position: this.position };
+        return { validations: this.validations, position: this.position, errors: this.errors };
     }
     processValidationLine(line) {
         if (!line.includes("->")) {

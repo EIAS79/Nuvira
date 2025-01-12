@@ -1,5 +1,5 @@
-export { SQON } from "./parser";
+export { Nuvira } from "./parser";
 export type * from './types/validator';
 export type * from './types/general';
 export type * from './types/records';
-//# sourceMappingURL=sqon.d.ts.map
+//# sourceMappingURL=nuvira.d.ts.map

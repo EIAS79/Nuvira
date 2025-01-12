@@ -20,7 +20,7 @@ export class Convertor {
     /**
      * JSON Conversion Logic
      * @param data - The normalized input data to be converted.
-     * @returns JSON converted to SQON format.
+     * @returns JSON converted to Nuvira format.
      */
     jsonConvertor(data) {
         const schema = this.generateSchema(data);
@@ -30,7 +30,7 @@ export class Convertor {
     /**
      * Generate the @schema section from the input data.
      * @param data - Array of JSON records.
-     * @returns Schema in SQON format.
+     * @returns Schema in Nuvira format.
      */
     generateSchema(data) {
         const types = {};
@@ -52,7 +52,7 @@ export class Convertor {
     /**
      * Generate the @records section from the input data.
      * @param data - Array of JSON records.
-     * @returns Records in SQON format.
+     * @returns Records in Nuvira format.
      */
     generateRecords(data) {
         return data
@@ -67,12 +67,12 @@ export class Convertor {
     /**
      * Helper: Infer the type of a value.
      * @param value - The value to analyze.
-     * @returns SQON-compatible type.
+     * @returns Nuvira-compatible type.
      */
     /**
      * Helper: Infer the type of a value.
      * @param value - The value to analyze.
-     * @returns SQON-compatible type.
+     * @returns Nuvira-compatible type.
      */
     inferType(value) {
         if (value === null)
@@ -108,7 +108,7 @@ export class Convertor {
         return 'Any';
     }
     /**
-     * Helper: Format a value into SQON format.
+     * Helper: Format a value into Nuvira format.
      * @param value - The value to format.
      */
     formatValue(value) {

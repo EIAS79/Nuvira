@@ -4,15 +4,8 @@ export class SQONSchema {
     parsedSchema: Record<string, any>;
     errors: Array<{ line: number; message: string }>;
     allowedTypes: string[];
+    schemaName: string;
 
-    /**
-     * Constructs a new SQONSchema instance.
-     * 
-     * @param {Object} params - Parameters to initialize the SQONSchema instance.
-     * @param {string[]} params.lines - The schema lines to be parsed.
-     * @param {number} [params.position=0] - The starting position of the schema.
-     * @param {string[]} [params.allowedTypes=[]] - List of allowed types in the schema.
-     */
     constructor({ lines, position = 0, allowedTypes = [] }: { 
         lines: string[]; 
         position?: number; 
@@ -22,33 +15,63 @@ export class SQONSchema {
         this.position = position;
         this.parsedSchema = {};
         this.errors = [];
-        this.allowedTypes = allowedTypes
+        this.allowedTypes = allowedTypes;
+        this.schemaName = 'unnamed-schema';
     }
 
-    /**
-     * Parses the schema defined in `lines` and returns the parsed schema and any errors encountered.
-     * 
-     * @returns {Record<string, any>} An object containing the parsed schema, errors, lines, and current position.
-     */
     parseSchema(): Record<string, any> {
+        let schemaNameFound = false; 
+
         while (this.position < this.lines.length) {
             const line = this.lines[this.position].trim();
-
+            
             if (line.startsWith('!#')) {
                 this.position++;
                 continue;
             }
 
             if (line === "@end") {
-                break;
+                break; 
             }
 
             this.processLine(line);
             this.position++;
         }
 
-        return { parsedSchema: this.parsedSchema, errors: this.errors, lines: this.lines, position: this.position };
+
+
+        return { schemaName: this.schemaName, parsedSchema: this.parsedSchema, errors: this.errors, lines: this.lines, position: this.position };
     }
+
+    processSchemaName(lines: string[]): string | null {
+        for (const line of lines) {
+            const match = line.match(/^@schema:\s*([a-zA-Z0-9_-]+)$/);
+    
+            if (match) {
+                const schemaName = match[1];
+    
+                if (/[^a-zA-Z0-9_-]/.test(schemaName)) {
+                    this.errors.push({
+                        line: this.position + 1,
+                        message: `Invalid schema name format. The name must only contain alphanumeric characters, underscores, or hyphens. No spaces or special symbols are allowed.`,
+                    });
+                    return null;
+                }
+    
+                this.schemaName = schemaName;
+                return schemaName; 
+            }
+        }
+    
+        this.errors.push({
+            line: this.position + 1,
+            message: `Invalid schema name format. The name should not contain spaces and may include hyphens and underscores only.`,
+        });
+    
+        return null;
+    }
+    
+    
 
     /**
      * Processes each line of the schema and updates the parsedSchema and errors accordingly.

@@ -33,23 +33,24 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SQON = void 0;
+exports.Nuvira = void 0;
 const fs = __importStar(require("fs"));
 const readline = __importStar(require("readline"));
 const schema_1 = require("./extends/schema");
 const parseValidation_1 = require("./extends/parseValidation");
 const parseRecords_1 = require("./extends/parseRecords");
 const validator_1 = require("./extends/validator");
+const parseRelations_1 = require("./extends/parseRelations");
 /**
- * Represents the main class for handling SQON data parsing, validation, and conversion.
+ * Represents the main class for handling Nuvira data parsing, validation, and conversion.
  * It processes input files, validates them against defined rules, and tracks the parsing metadata.
  *
- * @class SQON
- * @param {ParserConfig} config - Configuration for parsing SQON data.
- * @param {string} config.filePath - Path to the SQON file to parse.
+ * @class Nuvira
+ * @param {ParserConfig} config - Configuration for parsing Nuvira data.
+ * @param {string} config.filePath - Path to the Nuvira file to parse.
  * @param {('schema' | 'validations' | 'records')} [config.section] - Optional section to focus on during parsing.
  */
-class SQON {
+class Nuvira {
     section;
     filePath;
     fileContent;
@@ -58,6 +59,7 @@ class SQON {
     metadata;
     lines;
     position;
+    relations = {};
     parsedSchema;
     validations = {};
     records;
@@ -68,10 +70,10 @@ class SQON {
     fileRules;
     MAX_ERRORS;
     /**
-     * Constructs an instance of the SQON parser and initializes its properties.
+     * Constructs an instance of the Nuvira parser and initializes its properties.
      *
      * @param {ParserConfig} config - The configuration object for parsing the file.
-     * @param {string} config.filePath - Path to the SQON file that will be parsed.
+     * @param {string} config.filePath - Path to the Nuvira file that will be parsed.
      * @param {('schema' | 'validations' | 'records')} [config.section] - The specific section to focus on during parsing (optional).
      */
     constructor({ filePath, section, fileContent }) {
@@ -83,6 +85,7 @@ class SQON {
         this.section = section;
         this.lines = [];
         this.position = 0;
+        this.relations = {};
         this.parsedSchema = {};
         this.validations = {};
         this.records = [];
@@ -125,7 +128,7 @@ class SQON {
         };
         this.errors = [];
         this.sectionOrder = [];
-        this.fileRules = { Strict: false };
+        this.fileRules = { Strict: false, schemaName: 'unnamed-schema', Size: 10000, Locked: false, Type: 'ISOLATED' };
         this.parsingStartTime = 0;
         this.sectionStartTime = 0;
         this.metadata = {
@@ -143,13 +146,14 @@ class SQON {
             },
             sections: {
                 schema: { timeMs: 0 },
+                relations: { timeMs: 0 },
                 validations: { timeMs: 0 },
                 records: { timeMs: 0 }
             }
         };
     }
     /**
-     * Main method that handles the parsing of the SQON file, processes sections, and gathers metadata.
+     * Main method that handles the parsing of the Nuvira file, processes sections, and gathers metadata.
      * It reads the file, processes its sections, and returns parsed results along with metadata.
      *
      * @async
@@ -209,121 +213,257 @@ class SQON {
             metadata: this.metadata,
         };
     }
-    /**
-     * Parses the lines of the SQON file and processes the different sections.
-     * It reads through the file and determines what sections need to be processed (schema, validations, records).
-     * It updates the `position` and `lines` and handles section-specific logic.
-     *
-     * @returns {ParsedResult} - The parsed result, including schema, validations, records, and errors.
-     */
     parseLines() {
         while (this.position < this.lines.length) {
-            const line = this.lines[this.position];
-            if (line.startsWith('*STRICT=')) {
-                const strictValue = line.split('=')[1]?.trim().toUpperCase();
-                if (strictValue === 'TRUE') {
-                    if (this.section)
-                        throw new Error("Strict-Mode is enabled, please turn it off.");
-                    this.fileRules.Strict = true;
-                }
-                else if (strictValue === 'FALSE') {
-                    this.fileRules.Strict = false;
-                }
-                else {
-                    this.errors.push({ line: this.position + 1, message: `Invalid *STRICT value: ${strictValue}. Expected TRUE or FALSE.` });
-                }
+            const line = this.lines[this.position].trim();
+            if (line.startsWith('!#')) {
                 this.position++;
                 continue;
             }
-            if (line === "@schema") {
-                if (this.section === 'schema') {
-                    this.position++;
-                    this.parseSchema();
-                    return { fileRules: this.fileRules, schema: this.parsedSchema, validations: {}, records: [], errors: this.errors };
-                }
-                else if (!this.section) {
-                    this.checkSectionOrder("@schema");
-                    this.position++;
-                    this.parseSchema();
-                }
-            }
-            else if (line === "@validations") {
-                if (this.section === 'schema') {
-                    this.position++;
-                    this.parseValidation();
-                    return { fileRules: this.fileRules, schema: {}, validations: this.validations, records: [], errors: this.errors };
-                }
-                else if (!this.section) {
-                    this.checkSectionOrder("@validations");
-                    this.position++;
-                    this.parseValidation();
-                }
-            }
-            else if (line === "@records") {
-                if (this.section === 'records') {
-                    this.position++;
-                    this.parseRecords();
-                    return { fileRules: this.fileRules, schema: {}, validations: {}, records: this.records, errors: this.errors };
-                }
-                else if (!this.section) {
-                    this.checkSectionOrder("@records");
-                    this.position++;
-                    this.parseRecords();
-                }
-            }
-            else if (line === "@end") {
-                if (!this.section) {
-                    if (this.sectionOrder.length === 0) {
-                        this.errors.push({ line: this.position + 1, message: `Unexpected '@end' without an open section.` });
+            const configLines = line.split(/\s*(?=\*[^=]+=)/);
+            let lineProcessed = false;
+            configLines.forEach(configLine => {
+                configLine = configLine.trim();
+                if (configLine.startsWith("*STRICT=")) {
+                    const strictValue = configLine.split("=")[1]?.trim().toUpperCase();
+                    if (strictValue === "TRUE") {
+                        if (this.section)
+                            throw new Error("Strict-Mode is enabled, please turn it off.");
+                        this.fileRules.Strict = true;
+                    }
+                    else if (strictValue === "FALSE") {
+                        this.fileRules.Strict = false;
                     }
                     else {
-                        const lastSection = this.sectionOrder.pop();
-                        if (lastSection !== '@schema' && lastSection !== '@validations' && lastSection !== '@records') {
-                            this.errors.push({ line: this.position + 1, message: `Unexpected '@end' for section: ${lastSection}.` });
-                        }
+                        this.errors.push({
+                            line: this.position + 1,
+                            message: `Invalid *STRICT value: ${strictValue}. Expected TRUE or FALSE.`,
+                        });
                     }
+                    lineProcessed = true;
+                }
+                if (configLine.startsWith("*SIZE=")) {
+                    const sizeValue = configLine.split("=")[1]?.trim();
+                    const sizeNumber = parseInt(sizeValue, 10);
+                    if (isNaN(sizeNumber) || sizeNumber <= 0) {
+                        this.errors.push({
+                            line: this.position + 1,
+                            message: `Invalid *SIZE value: ${sizeValue}. Expected a positive integer.`,
+                        });
+                    }
+                    else {
+                        this.fileRules.Size = sizeNumber;
+                    }
+                    lineProcessed = true;
+                }
+                if (configLine.startsWith("*TYPE=")) {
+                    const typeValue = configLine.split("=")[1]?.trim().toUpperCase();
+                    const allowedTypes = [
+                        "ROOT",
+                        "NODE",
+                        "LEAF",
+                        "ISOLATED",
+                        "REFERENCE",
+                    ];
+                    if (!allowedTypes.includes(typeValue)) {
+                        this.errors.push({
+                            line: this.position + 1,
+                            message: `Invalid *TYPE value: ${typeValue}. Allowed values are ${allowedTypes.join(", ")}.`,
+                        });
+                    }
+                    else {
+                        this.fileRules.Type = typeValue;
+                    }
+                    lineProcessed = true;
+                }
+                if (configLine.startsWith("*LOCKED=")) {
+                    const lockedValue = configLine.split("=")[1]?.trim().toUpperCase();
+                    if (lockedValue === "TRUE") {
+                        this.fileRules.Locked = true;
+                    }
+                    else if (lockedValue === "FALSE") {
+                        this.fileRules.Locked = false;
+                    }
+                    else {
+                        this.errors.push({
+                            line: this.position + 1,
+                            message: `Invalid *LOCKED value: ${lockedValue}. Expected TRUE or FALSE.`,
+                        });
+                    }
+                    lineProcessed = true;
+                }
+            });
+            if (lineProcessed) {
+                this.position++;
+                continue;
+            }
+            if (line.startsWith('@schema:')) {
+                const schemaName = line.split(":")[1]?.trim();
+                if (schemaName) {
+                    if (this.section === "schema") {
+                        this.position++;
+                        this.parseSchema();
+                        return {
+                            fileRules: this.fileRules,
+                            schema: this.parsedSchema,
+                            validations: {},
+                            relations: {},
+                            records: [],
+                            errors: this.errors,
+                        };
+                    }
+                    else if (!this.section) {
+                        this.checkSectionOrder("@schema");
+                        this.position++;
+                        this.parseSchema();
+                    }
+                }
+                else {
+                    this.errors.push({
+                        line: this.position + 1,
+                        message: `Schema name is missing after '@schema:'.`,
+                    });
                 }
             }
             else {
-                if (this.section && this.section !== 'records' && this.section !== 'schema')
-                    throw new Error(`Invalid section parsing!`);
-                if (!this.section)
-                    this.errors.push({ line: this.position + 1, message: `Unknown section or command: "${line}"` });
+                switch (line) {
+                    case "@relations":
+                        if (this.section === "relations") {
+                            this.position++;
+                            this.parseRelations();
+                            return {
+                                fileRules: this.fileRules,
+                                schema: {},
+                                validations: {},
+                                relations: this.relations,
+                                records: [],
+                                errors: this.errors,
+                            };
+                        }
+                        else if (!this.section) {
+                            this.checkSectionOrder("@relations");
+                            this.position++;
+                            this.parseRelations();
+                        }
+                        break;
+                    case "@validations":
+                        if (this.section === "validations") {
+                            this.position++;
+                            this.parseValidation();
+                            return {
+                                fileRules: this.fileRules,
+                                schema: {},
+                                validations: this.validations,
+                                relations: {},
+                                records: [],
+                                errors: this.errors,
+                            };
+                        }
+                        else if (!this.section) {
+                            this.checkSectionOrder("@validations");
+                            this.position++;
+                            this.parseValidation();
+                        }
+                        break;
+                    case "@records":
+                        if (this.section === "records") {
+                            this.position++;
+                            this.parseRecords();
+                            return {
+                                fileRules: this.fileRules,
+                                schema: {},
+                                validations: {},
+                                relations: {},
+                                records: this.records,
+                                errors: this.errors,
+                            };
+                        }
+                        else if (!this.section) {
+                            this.checkSectionOrder("@records");
+                            this.position++;
+                            this.parseRecords();
+                        }
+                        break;
+                    case "@end":
+                        if (!this.section) {
+                            if (this.sectionOrder.length === 0) {
+                                this.errors.push({
+                                    line: this.position + 1,
+                                    message: `Unexpected '@end' without an open section.`,
+                                });
+                            }
+                            else {
+                                const lastSection = this.sectionOrder.pop();
+                                if (lastSection !== "@schema" &&
+                                    lastSection !== "@relations" &&
+                                    lastSection !== "@validations" &&
+                                    lastSection !== "@records") {
+                                    this.errors.push({
+                                        line: this.position + 1,
+                                        message: `Unexpected '@end' for section: ${lastSection}.`,
+                                    });
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        if (this.section && this.section !== "records" && this.section !== "schema" && this.section !== "relations") {
+                            throw new Error(`Invalid section parsing!`);
+                        }
+                        if (!this.section) {
+                            this.errors.push({
+                                line: this.position + 1,
+                                message: `Unknown section or command: "${line}"`,
+                            });
+                        }
+                        break;
+                }
             }
             this.position++;
         }
-        if (!this.section) {
-            if (!this.parsedSchema) {
-                this.errors.push({ line: null, message: `Missing required section: '@schema'` });
-            }
-            if (this.records.length === 0) {
-                this.errors.push({ line: null, message: `Missing required section: '@records'` });
-            }
+        if (!this.parsedSchema) {
+            this.errors.push({ line: null, message: `Missing required section: '@schema'` });
+        }
+        if (this.records.length === 0) {
+            this.errors.push({ line: null, message: `Missing required section: '@records'` });
         }
         return {
             fileRules: this.fileRules,
             schema: this.parsedSchema,
             validations: this.validations,
+            relations: this.relations,
             records: this.records,
             errors: this.errors,
         };
     }
     /**
-     * Checks and enforces the order of sections within the SQON file.
-     * Ensures that sections like `@schema`, `@validations`, and `@records` follow a specific order.
+     * Checks and enforces the order of sections within the Nuvira file.
+     * Ensures that sections like `@schema`, `@relations`, `@validations`, and `@records` follow a specific order.
      *
-     * @param {string} section - The section name that is being processed (e.g., '@schema', '@validations', '@records').
+     * @param {string} section - The section name that is being processed (e.g., '@schema', '@relations', '@validations', '@records').
      */
     checkSectionOrder(section) {
-        if (section === "@schema") {
-            if (this.sectionOrder.includes("@schema")) {
+        if (section.startsWith("@schema")) {
+            if (this.sectionOrder.includes("@schema") || this.sectionOrder.some(s => s.startsWith("@schema:"))) {
                 this.errors.push({ line: this.position + 1, message: `'@schema' is already opened but not closed.` });
             }
             this.sectionOrder.push(section);
         }
+        else if (section === "@relations") {
+            if (!this.sectionOrder.includes("@schema") && !this.sectionOrder.some(s => s.startsWith("@schema:"))) {
+                this.errors.push({ line: this.position + 1, message: `'@relations' must come after '@schema'.` });
+            }
+            if (this.sectionOrder.includes("@relations")) {
+                this.errors.push({ line: this.position + 1, message: `'@relations' is already opened but not closed.` });
+            }
+            this.sectionOrder.push(section);
+        }
         else if (section === "@validations") {
-            if (!this.sectionOrder.includes("@schema")) {
+            if (!this.sectionOrder.includes("@schema") && !this.sectionOrder.some(s => s.startsWith("@schema:"))) {
                 this.errors.push({ line: this.position + 1, message: `'@validations' must come after '@schema'.` });
+            }
+            if (this.sectionOrder.includes("@relations") && !this.sectionOrder.includes("@relations")) {
+                this.errors.push({ line: this.position + 1, message: `'@validations' must come after '@relations'.` });
             }
             if (this.sectionOrder.includes("@validations")) {
                 this.errors.push({ line: this.position + 1, message: `'@validations' is already opened but not closed.` });
@@ -331,7 +471,7 @@ class SQON {
             this.sectionOrder.push(section);
         }
         else if (section === "@records") {
-            if (!this.sectionOrder.includes("@schema")) {
+            if (!this.sectionOrder.includes("@schema") && !this.sectionOrder.some(s => s.startsWith("@schema:"))) {
                 this.errors.push({ line: this.position + 1, message: `'@records' must come after '@schema'.` });
             }
             if (this.sectionOrder.includes("@validations") && !this.sectionOrder.includes("@validations")) {
@@ -344,7 +484,7 @@ class SQON {
         }
     }
     /**
-     * Parses the `@schema` section of the SQON file.
+     * Parses the `@schema` section of the Nuvira file.
      * This method processes the schema lines, validates the schema fields, and populates the `parsedSchema` property.
      *
      * @returns {void} - No return value. Updates the `parsedSchema` and `errors` properties of the instance.
@@ -353,14 +493,31 @@ class SQON {
         this.sectionStartTime = performance.now();
         const schemaParser = new schema_1.SQONSchema({ lines: this.lines, position: this.position, allowedTypes: this.allowedTypes });
         const results = schemaParser.parseSchema();
+        const schemaName = schemaParser.processSchemaName(this.lines);
         this.metadata.sections.schema.timeMs = performance.now() - this.sectionStartTime;
+        this.fileRules.schemaName = schemaName || 'unnamed_schema';
         this.parsedSchema = results.parsedSchema;
         this.errors.push(...results.errors.slice(0, this.MAX_ERRORS));
         this.lines = results.lines;
         this.position = results.position;
     }
     /**
-     * Parses the `@validations` section of the SQON file.
+     * Parses the `@relations` section of the Nuvira file.
+     * This method processes the relation lines and populates the `relations` property.
+     *
+     * @returns {void} - No return value. Updates the `relations` and `errors` properties of the instance.
+     */
+    parseRelations() {
+        this.sectionStartTime = performance.now();
+        const relationsParser = new parseRelations_1.SQONRelations({ lines: this.lines, position: this.position });
+        const results = relationsParser.parseRelations();
+        this.metadata.sections.relations.timeMs = performance.now() - this.sectionStartTime;
+        this.relations = results.relations;
+        this.errors.push(...results.errors.slice(0, this.MAX_ERRORS));
+        this.position = results.position;
+    }
+    /**
+     * Parses the `@validations` section of the Nuvira file.
      * This method processes the validation rules, validates them against the schema, and populates the `validations` property.
      *
      * @returns {void} - No return value. Updates the `validations` and `errors` properties of the instance.
@@ -377,11 +534,10 @@ class SQON {
         this.metadata.sections.validations.timeMs = performance.now() - this.sectionStartTime;
         this.validations = results.validations;
         this.errors.push(...results.errors.slice(0, this.MAX_ERRORS));
-        this.lines = results.lines;
         this.position = results.position;
     }
     /**
-     * Parses the `@records` section of the SQON file.
+     * Parses the `@records` section of the Nuvira file.
      * This method processes the records and stores them in the `records` property.
      *
      * @returns {void} - No return value. Updates the `records` and `errors` properties of the instance.
@@ -464,5 +620,5 @@ class SQON {
         return result;
     }
 }
-exports.SQON = SQON;
+exports.Nuvira = Nuvira;
 //# sourceMappingURL=parser.js.map

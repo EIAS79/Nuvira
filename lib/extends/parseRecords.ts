@@ -28,7 +28,6 @@ export class SQONRecords  {
         parseRecords(batchSize = 10): {
             records: Array<{ '#doc': number; data: Array<{ key: string; value: any; type: string }> }>;
             position: number;
-            currentLine: string;
             errors: { line: number | null; message: string }[];
         } {
             const startMarker = '@records';
@@ -39,7 +38,6 @@ export class SQONRecords  {
                 return { 
                     records: [], 
                     position: this.position, 
-                    currentLine: this.lines[this.position], 
                     errors: this.errors 
                 };
             }
@@ -75,7 +73,6 @@ export class SQONRecords  {
             return {
                 records: this.records,
                 position: this.position,
-                currentLine: this.position < this.lines.length ? this.lines[this.position] : '',
                 errors: this.errors
             };
         }

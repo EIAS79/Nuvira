@@ -10,19 +10,19 @@ const getLibraryVersion = function (library) {
     const version = (dependencies[library] || devDependencies[library] || "").replace(/^(\^|~)/, "") || "Not installed";
     return version;
 };
-fetch("https://registry.npmjs.com/-/v1/search?text=sqon-parser")
+fetch("https://registry.npmjs.com/-/v1/search?text=nuvira")
     .then(function (response) {
     return response.json();
 })
     .then(function (data) {
     const version = data.objects[0]?.package?.version;
-    if (version && getLibraryVersion("sqon-parser") !== version) {
+    if (version && getLibraryVersion("nuvira") !== version) {
         console.error(CYAN +
-            "Error: Please update sqon-parser.js to the latest version (" + version + ")." +
+            "Error: Please update nuvira to the latest version (" + version + ")." +
             RESET);
     }
 })
     .catch(function (error) { });
-export { SQON } from "./parser";
+export { Nuvira } from "./parser";
 ;
-//# sourceMappingURL=sqon.js.map
+//# sourceMappingURL=nuvira.js.map

@@ -7,25 +7,14 @@ export declare class SQONSchema {
         message: string;
     }>;
     allowedTypes: string[];
-    /**
-     * Constructs a new SQONSchema instance.
-     *
-     * @param {Object} params - Parameters to initialize the SQONSchema instance.
-     * @param {string[]} params.lines - The schema lines to be parsed.
-     * @param {number} [params.position=0] - The starting position of the schema.
-     * @param {string[]} [params.allowedTypes=[]] - List of allowed types in the schema.
-     */
+    schemaName: string;
     constructor({ lines, position, allowedTypes }: {
         lines: string[];
         position?: number;
         allowedTypes?: string[];
     });
-    /**
-     * Parses the schema defined in `lines` and returns the parsed schema and any errors encountered.
-     *
-     * @returns {Record<string, any>} An object containing the parsed schema, errors, lines, and current position.
-     */
     parseSchema(): Record<string, any>;
+    processSchemaName(lines: string[]): string | null;
     /**
      * Processes each line of the schema and updates the parsedSchema and errors accordingly.
      *

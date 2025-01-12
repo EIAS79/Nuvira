@@ -21,7 +21,6 @@ export declare class SQONValidation {
             line: number;
             message: string;
         }>;
-        lines: string[];
         position: number;
     };
     processValidationLine(line: string): void;

@@ -1,7 +1,7 @@
 const SQON = require('sqon-parser');  // Assuming sqon-parser being installed
 
-// Parse a .sqon file with sections for schema and validations
-const parser1 = new SQON({ filePath: './test.sqon', sections: "schema" });
+// Parse a .nuv file with sections for schema and validations
+const parser1 = new SQON({ filePath: './test.nuv', sections: "schema" });
 parser1.parse()
     .then(parserResult => {
         console.log("Parsed Result (test1):");
@@ -24,8 +24,8 @@ parser1.parse()
         console.error("Error during parsing:", error);
     });
 
-// Parse the full .sqon file with schema, validations, records, and metadata
-const parser2 = new SQON({ filePath: './test.sqon' });
+// Parse the full .nuv file with schema, validations, records, and metadata
+const parser2 = new SQON({ filePath: './test.nuv' });
 parser2.parse()
     .then(parserResult => {
         console.log("Parsed Result (test2):");

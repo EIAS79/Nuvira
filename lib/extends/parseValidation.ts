@@ -26,7 +26,7 @@ export class SQONValidation {
         this.parsedSchema = parsedSchema;
         this.validationKeywords = validationKeywords;
     }
-    parseValidation(): { validations: Record<string, any>; errors: Array<{ line: number; message: string }> , lines: string[], position: number } {
+    parseValidation(): { validations: Record<string, any>; errors: Array<{ line: number; message: string }> , position: number } {
         while (this.position < this.lines.length) {
             const line = this.lines[this.position].trim();
     
@@ -48,7 +48,7 @@ export class SQONValidation {
             this.position++;
         }
     
-        return { validations: this.validations, errors: this.errors, lines: this.lines, position: this.position};
+        return { validations: this.validations, position: this.position, errors: this.errors };
     }    
 
     processValidationLine(line: string): void {
