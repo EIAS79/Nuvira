@@ -1,4 +1,4 @@
-import { Nuvira } from './lib/nuvira';
+import { Nuvira } from '../lib/nuvira';
 
 
 async function run() {
